@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --color-gold-50: #FDFBF7;
+  --color-gold-100: #FAF5E8;
+  --color-gold-200: #F3E5C8;
+  --color-gold-300: #E7CF9D;
+  --color-gold-400: #D8B570;
+  --color-gold-500: #C5A059;
+  --color-gold-600: #B28842;
+  --color-gold-700: #936B32;
+  --color-gold-800: #78532C;
+  --color-gold-900: #624328;
+
+  --color-dark-950: #080A0C;
+  --color-dark-900: #0B0D10;
+  --color-dark-850: #12151B;
+  --color-dark-800: #191D26;
+  --color-dark-750: #212632;
+  --color-dark-700: #2B3140;
+}
+
+@layer base {
+  body {
+    background-color: #0B0D10;
+    color: #E5E7EB;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, .font-serif-title {
+    font-family: var(--font-serif);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0B0D10;
+}
+::-webkit-scrollbar-thumb {
+  background: #2B3140;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #C5A059;
+}
+
+/* Glassmorphism Card Utilities */
+.glass-card {
+  background: rgba(18, 21, 27, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(197, 160, 89, 0.15);
+}
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card-hover:hover {
+  border-color: rgba(197, 160, 89, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(197, 160, 89, 0.15);
+}
+
+.gold-gradient-text {
+  background: linear-gradient(135deg, #F5F3EF 30%, #C5A059 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-highlight {
+  color: #C5A059;
+}
+
+/* Loading Screen Animations & Effects */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+    filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.3));
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.85;
+    filter: drop-shadow(0 0 28px rgba(197, 160, 89, 0.65));
+  }
+}
+
+@keyframes radarWave {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
+@keyframes barShimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-radar-wave-1 {
+  animation: radarWave 2.8s cubic-bezier(0.2, 0, 0.4, 1) infinite;
+}
+
+.animate-radar-wave-2 {
+  animation: radarWave 2.8s cubic-bezier(0.2, 0, 0.4, 1) infinite 1.4s;
+}
+
+.loading-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    #F5F3EF 0%,
+    #C5A059 25%,
+    #FFF8EB 50%,
+    #C5A059 75%,
+    #F5F3EF 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: goldShimmer 4s linear infinite;
+}
+
+.loading-bar-indeterminate {
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-bar-indeterminate::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 50%;
+  background: linear-gradient(90deg, transparent, #F5F3EF, #C5A059, transparent);
+  animation: barShimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Screen Fade Transitions */
+.screen-fade-enter-active,
+.screen-fade-leave-active {
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.screen-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.screen-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.02);
+}

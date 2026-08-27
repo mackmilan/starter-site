@@ -1,0 +1,31 @@
+{
+  "name": "site-starter",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:api": "node scripts/generate-api.mjs && vite",
+    "build": "vue-tsc -b && vite build",
+    "docs:check": "node scripts/validate-ai-memory.mjs",
+    "preview": "vite preview",
+    "fetch:openapi": "node scripts/fetch-openapi.mjs",
+    "generate:api": "node scripts/generate-api.mjs"
+  },
+  "dependencies": {
+    "lucide-vue-next": "^0.475.0",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.99.0",
+    "@tailwindcss/vite": "^4.0.7",
+    "@types/node": "^22.13.4",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "tailwindcss": "^4.0.7",
+    "typescript": "~5.7.2",
+    "vite": "^6.1.0",
+    "vite-plugin-vue-devtools": "^8.2.1",
+    "vue-tsc": "^2.2.0"
+  }
+}

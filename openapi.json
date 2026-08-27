@@ -1,0 +1,1797 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Site Starter - Public BFF API",
+    "description": "Contrato de referência da API pública (BFF) para consumo por um site institucional sem credenciais de acesso ou tokens JWT/Bearer. Inclui endpoints de conteúdo, navegação, configurações públicas e informações gerais da organização. A identificação do tenant é realizada via domínio/subdomínio ou opcionalmente através do cabeçalho `X-Tenant: default`.",
+    "contact": {
+      "email": "maintainer@example.com"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "API Host Server"
+    }
+  ],
+  "paths": {
+    "/api/v1/bff/brands": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List active brands for public frontend display ordered by name",
+        "operationId": "getBrands",
+        "parameters": [
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field used to sort brands",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "name",
+              "enum": [
+                "name",
+                "id"
+              ]
+            }
+          },
+          {
+            "name": "sort_direction",
+            "in": "query",
+            "description": "Sort direction",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of brands ordered alphabetically by name, with ID as tie-breaker",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffBrandCollectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/brands/{slug}": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get a brand by slug",
+        "operationId": "getBrandBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Brand details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffBrandResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Brand not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/catalog": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List published catalog items ordered by name with optional filtering",
+        "operationId": "getCatalog",
+        "parameters": [
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field used to sort products",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "name",
+              "enum": [
+                "name",
+                "price",
+                "id"
+              ]
+            }
+          },
+          {
+            "name": "sort_direction",
+            "in": "query",
+            "description": "Sort direction",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by category name or slug",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "description": "Filter by brand name or slug",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attribute[key]",
+            "in": "query",
+            "description": "Filter by a product attribute value, for example attribute[color]=blue",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attribute",
+            "in": "query",
+            "description": "Attribute key when used with attribute_value",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attribute_value",
+            "in": "query",
+            "description": "Attribute value when used with attribute",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "min_price",
+            "in": "query",
+            "description": "Minimum product price",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "float",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "max_price",
+            "in": "query",
+            "description": "Maximum product price",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "float",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Published catalog items ordered alphabetically by name, with ID as tie-breaker, and categories ordered by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffCatalogCollectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/catalog/{idOrSlug}": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get published catalog item details by ID or slug",
+        "operationId": "getCatalogItemByIdOrSlug",
+        "parameters": [
+          {
+            "name": "idOrSlug",
+            "in": "path",
+            "description": "Catalog item ID or Slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Catalog item details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffCatalogResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/categories": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List categories for public frontend display ordered by name",
+        "operationId": "getCategories",
+        "parameters": [
+          {
+            "name": "sort_by",
+            "in": "query",
+            "description": "Field used to sort categories",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "name",
+              "enum": [
+                "name",
+                "id"
+              ]
+            }
+          },
+          {
+            "name": "sort_direction",
+            "in": "query",
+            "description": "Sort direction",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "asc",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of categories ordered alphabetically by name, with ID as tie-breaker",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffCategoryCollectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/categories/{slug}": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get a category by slug",
+        "operationId": "getCategoryBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffCategoryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Category not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/leads": {
+      "post": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Submit contact message lead from public website",
+        "operationId": "createLead",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lead submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffLeadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/media": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List media files for public site consumption",
+        "operationId": "getMedia",
+        "parameters": [
+          {
+            "name": "folder_id",
+            "in": "query",
+            "description": "Filter media by folder ID",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of public media files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffMediaCollectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/menu": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List content sections grouped with their published pages for site navigation",
+        "operationId": "getMenu",
+        "responses": {
+          "200": {
+            "description": "Menu sections with grouped pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffMenuResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/pages": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List published pages for public site display",
+        "operationId": "getPages",
+        "responses": {
+          "200": {
+            "description": "List of published pages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffPageCollectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/pages/{slug}": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get a published page by slug for public site display",
+        "operationId": "getPageBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Page slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffPageResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/sections": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "List active content sections for public site display",
+        "operationId": "getSections",
+        "responses": {
+          "200": {
+            "description": "List of content sections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffSectionCollectionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/settings": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get public site settings and under construction status for frontend hydration",
+        "operationId": "getBffSettings",
+        "responses": {
+          "200": {
+            "description": "Public tenant settings and status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffSettingsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/validate-under-construction-token": {
+      "post": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Validate the private token for an under-construction site",
+        "operationId": "validateUnderConstructionToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnderConstructionTokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token validated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffTokenValidationResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffTokenValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/site-data/{pageId}": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get aggregated initial site data for frontend hydration",
+        "operationId": "getSiteDataById",
+        "parameters": [
+          {
+            "name": "pageId",
+            "in": "path",
+            "description": "Page ID",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mapped page data using the same payload format as /bff/pages/{slug}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffSiteDataResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/site-data/slug/{slug}": {
+      "get": {
+        "tags": [
+          "BFF Public"
+        ],
+        "summary": "Get aggregated initial site data for frontend hydration by page slug",
+        "operationId": "getSiteDataBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "Page slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "brand",
+            "in": "query",
+            "description": "Filter products by brand name or slug",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter products by category name or slug",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "description": "Filter by product name or slug",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mapped page data using the same payload format as /bff/pages/{slug}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BffSiteDataResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Page not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/bff/site/info": {
+      "get": {
+        "tags": [
+          "BFF Site"
+        ],
+        "summary": "Obtém informações e status do site",
+        "operationId": "getSiteInfo",
+        "responses": {
+          "200": {
+            "description": "Informações gerais do site",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "properties": {
+                        "module": {
+                          "type": "string",
+                          "example": "site"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Site Starter"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Descrição pública da organização"
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "BffBrand": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Acme Corp"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "tag": {
+            "type": "string",
+            "example": "Móveis",
+            "nullable": true
+          },
+          "logoUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "isFeatured": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffCategory": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Sofás"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffCatalogMedia": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "folder_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "filename": {
+            "type": "string",
+            "nullable": true
+          },
+          "original_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "tag": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+            "example": "hero_banner",
+            "nullable": true
+          },
+          "mime_type": {
+            "type": "string",
+            "nullable": true
+          },
+          "size_bytes": {
+            "type": "integer",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "display_order": {
+            "type": "integer",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffCatalogItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "name": {
+            "type": "string",
+            "example": "Cadeira Gamer"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "tag": {
+            "type": "string",
+            "nullable": true
+          },
+          "subtitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "price": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "promotional_price": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "badge": {
+            "type": "string",
+            "nullable": true
+          },
+          "brand": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BffBrand"
+              }
+            ],
+            "nullable": true
+          },
+          "category": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BffCategory"
+              }
+            ],
+            "nullable": true
+          },
+          "brand_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "category_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "media": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffCatalogMedia"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffCatalogIndexData": {
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffCatalogItem"
+            }
+          },
+          "meta": {
+            "properties": {
+              "current_page": {
+                "type": "integer",
+                "example": 1
+              },
+              "total": {
+                "type": "integer",
+                "example": 10
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "BffMediaItem": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "folder_id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "filename": {
+            "type": "string",
+            "example": "hero.jpg"
+          },
+          "original_name": {
+            "type": "string",
+            "example": "hero_banner.jpg"
+          },
+          "tag": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+            "example": "hero_banner",
+            "nullable": true
+          },
+          "mime_type": {
+            "type": "string",
+            "nullable": true
+          },
+          "size_bytes": {
+            "type": "integer",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "display_order": {
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "BffPageSummary": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Sobre a Loja"
+          },
+          "slugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "meta_title": {
+            "type": "string",
+            "nullable": true
+          },
+          "meta_description": {
+            "type": "string",
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffPageSection": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Hero"
+          },
+          "tag": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+            "example": "hero_banner",
+            "nullable": true
+          },
+          "value": {
+            "type": "string",
+            "nullable": true
+          },
+          "display_order": {
+            "type": "integer",
+            "example": 0
+          },
+          "media_files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMediaItem"
+            }
+          },
+          "media_folders": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffPageDetail": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Sobre a Loja"
+          },
+          "slugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "meta_title": {
+            "type": "string",
+            "nullable": true
+          },
+          "meta_description": {
+            "type": "string",
+            "nullable": true
+          },
+          "author_name": {
+            "type": "string",
+            "nullable": true
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffPageSection"
+            }
+          },
+          "content_sections": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "media_files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMediaItem"
+            }
+          },
+          "media_folders": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "setting_groups": {
+            "description": "Setting groups with only non-secret settings.",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "settings": {
+            "description": "Only settings that are not marked as secret.",
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "brands": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "catalog_items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffCollectionEnvelope": {
+        "properties": {
+          "useEndpoint": {
+            "type": "boolean",
+            "example": true
+          },
+          "endpoint": {
+            "type": "string",
+            "example": "/api/v1/bff/catalog",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffSiteData": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "slugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "brands": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BffCollectionEnvelope"
+              }
+            ],
+            "nullable": true
+          },
+          "categories": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BffCollectionEnvelope"
+              }
+            ],
+            "nullable": true
+          },
+          "catalog_items": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BffCollectionEnvelope"
+              }
+            ],
+            "nullable": true
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "nullable": true
+          },
+          "settings": {
+            "description": "Only settings that are not marked as secret.",
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "nullable": true
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffSiteSettings": {
+        "properties": {
+          "site_name": {
+            "type": "string",
+            "example": "Site Starter"
+          },
+          "site_description": {
+            "type": "string",
+            "example": "Descrição pública da organização"
+          },
+          "under_construction": {
+            "type": "boolean",
+            "example": false
+          },
+          "under_construction_badge": {
+            "type": "string",
+            "example": "EM BREVE"
+          },
+          "under_construction_title": {
+            "type": "string",
+            "example": "Nosso site está em construção."
+          },
+          "under_construction_message": {
+            "type": "string",
+            "example": "Estamos preparando um espaço especial com novidades. Em breve estaremos no ar!"
+          },
+          "under_construction_token": {
+            "description": "Empty when the underlying setting is marked as secret.",
+            "type": "string",
+            "example": ""
+          },
+          "settings": {
+            "description": "Map containing only settings that are not marked as secret.",
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "BffTokenValidation": {
+        "required": [
+          "valid"
+        ],
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "type": "object"
+      },
+      "BffMenuItem": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "BffMenuPage": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "slugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffMenuSection": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "tag": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+            "example": "hero_banner",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMenuItem"
+            }
+          },
+          "pages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMenuPage"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffSection": {
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "number": {
+            "type": "integer",
+            "nullable": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:_[a-z0-9]+)*$",
+            "example": "hero_banner",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "media_files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMediaItem"
+            }
+          },
+          "media_folders": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "ApiError": {
+        "required": [
+          "status",
+          "message"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "example": "Recurso não encontrado."
+          }
+        },
+        "type": "object"
+      },
+      "ApiValidationError": {
+        "required": [
+          "message"
+        ],
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "The given data was invalid."
+          },
+          "errors": {
+            "type": "object"
+          }
+        },
+        "type": "object"
+      },
+      "LeadRequest": {
+        "required": [
+          "name",
+          "email",
+          "message"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "João Silva"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "joao@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "nullable": true
+          },
+          "subject": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "type": "object"
+      },
+      "UnderConstructionTokenRequest": {
+        "required": [
+          "token"
+        ],
+        "properties": {
+          "token": {
+            "type": "string",
+            "format": "password",
+            "example": "preview_abc123",
+            "maxLength": 255
+          }
+        },
+        "type": "object"
+      },
+      "BffBrandCollectionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffBrand"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffBrandResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffBrand"
+          }
+        },
+        "type": "object"
+      },
+      "BffCategoryCollectionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffCategory"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffCategoryResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffCategory"
+          }
+        },
+        "type": "object"
+      },
+      "BffCatalogCollectionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffCatalogIndexData"
+          }
+        },
+        "type": "object"
+      },
+      "BffCatalogResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffCatalogItem"
+          }
+        },
+        "type": "object"
+      },
+      "BffMediaCollectionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMediaItem"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffMenuResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffMenuSection"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffPageCollectionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffPageSummary"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffPageResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffPageDetail"
+          }
+        },
+        "type": "object"
+      },
+      "BffSiteDataResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffSiteData"
+          }
+        },
+        "type": "object"
+      },
+      "BffSettingsResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffSiteSettings"
+          }
+        },
+        "type": "object"
+      },
+      "BffTokenValidationResponse": {
+        "required": [
+          "status",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffTokenValidation"
+          }
+        },
+        "type": "object"
+      },
+      "BffTokenValidationErrorResponse": {
+        "required": [
+          "status",
+          "message",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "error"
+          },
+          "message": {
+            "type": "string",
+            "example": "Token inválido."
+          },
+          "data": {
+            "$ref": "#/components/schemas/BffTokenValidation"
+          }
+        },
+        "type": "object"
+      },
+      "BffSectionCollectionResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BffSection"
+            }
+          }
+        },
+        "type": "object"
+      },
+      "BffLeadResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              }
+            },
+            "type": "object"
+          }
+        },
+        "type": "object"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "BFF Public",
+      "description": "Public Backend-For-Frontend Endpoints for Site Hydration"
+    },
+    {
+      "name": "BFF Site",
+      "description": "Endpoints públicos para o site institucional"
+    }
+  ]
+}

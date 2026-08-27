@@ -1,0 +1,191 @@
+name: CI & Release
+
+'on':
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: Frontend CI (Build & Typecheck)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and Typecheck
+        run: npm run build
+
+  release:
+    name: Docker Build & GitHub Release
+    runs-on: ubuntu-latest
+    needs: [ci]
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Next Release Version
+        id: version
+        run: |
+          python3 - << 'EOF'
+          import os, re, subprocess
+
+          ref = os.environ.get('GITHUB_REF', '')
+          is_release = "true"
+          tag = ""
+          version = ""
+
+          if ref.startswith('refs/tags/v'):
+              tag = ref.replace('refs/tags/', '')
+              version = tag.lstrip('v')
+          else:
+              try:
+                  tags_output = subprocess.check_output(['git', 'tag', '-l', 'v*'], text=True).strip().splitlines()
+              except Exception:
+                  tags_output = []
+
+              valid_tags = []
+              for t in tags_output:
+                  m = re.match(r'^v?(\d+)\.(\d+)\.(\d+)$', t.strip())
+                  if m:
+                      valid_tags.append((int(m.group(1)), int(m.group(2)), int(m.group(3)), t.strip()))
+
+              if valid_tags:
+                  valid_tags.sort(key=lambda x: (x[0], x[1], x[2]))
+                  last_major, last_minor, last_patch, latest_tag = valid_tags[-1]
+              else:
+                  last_major, last_minor, last_patch, latest_tag = 1, 0, 0, 'v1.0.0'
+
+              try:
+                  commit_msg = subprocess.check_output(['git', 'log', '-1', '--pretty=%B'], text=True).strip()
+              except Exception:
+                  commit_msg = ""
+
+              if re.search(r'(BREAKING CHANGE|#major|\[major\]|^[a-z]+(\([a-z0-9_-]+\))?!:)', commit_msg, re.IGNORECASE):
+                  new_major = last_major + 1
+                  new_minor = 0
+                  new_patch = 0
+              elif re.search(r'(#minor|\[minor\]|^feat(\([a-z0-9_-]+\))?:)', commit_msg, re.IGNORECASE):
+                  new_major = last_major
+                  new_minor = last_minor + 1
+                  new_patch = 0
+              else:
+                  new_major = last_major
+                  new_minor = last_minor
+                  new_patch = last_patch + 1
+
+              tag = f"v{new_major}.{new_minor}.{new_patch}"
+              version = f"{new_major}.{new_minor}.{new_patch}"
+
+          print(f"Nova Tag Calculada: {tag}")
+          print(f"Versão: {version}")
+
+          github_output = os.environ.get('GITHUB_OUTPUT', '')
+          if github_output:
+              with open(github_output, 'a') as f:
+                  f.write(f"is_release={is_release}\n")
+                  f.write(f"tag={tag}\n")
+                  f.write(f"version={version}\n")
+          EOF
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ steps.version.outputs.tag }}
+            type=raw,value=${{ steps.version.outputs.version }}
+            type=sha,format=short,prefix=sha-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || 'http://localhost:8000' }}
+            VITE_TENANT_ID=${{ vars.VITE_TENANT_ID || 'default' }}
+            OPENAPI_URL=${{ vars.OPENAPI_URL || 'http://localhost:8000/api/docs/site' }}
+            VITE_OPENAPI_URL=${{ vars.VITE_OPENAPI_URL || 'http://localhost:8000/api/docs/site' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Export Docker image artifact
+        run: |
+          IMAGE_TAG="ghcr.io/${{ github.repository }}:${{ steps.version.outputs.tag }}"
+          ARCHIVE_NAME="site-starter-${{ steps.version.outputs.tag }}-docker.tar.gz"
+          echo "Puxando $IMAGE_TAG para exportar arquivo..."
+          docker pull "$IMAGE_TAG"
+          echo "Salvando imagem Docker em $ARCHIVE_NAME..."
+          docker save "$IMAGE_TAG" | gzip > "$ARCHIVE_NAME"
+          echo "Arquivo gerado: $(ls -lh "$ARCHIVE_NAME")"
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ steps.version.outputs.tag }}
+          IMAGE_NAME: ghcr.io/${{ github.repository }}
+        run: |
+          ARCHIVE_NAME="site-starter-${TAG_NAME}-docker.tar.gz"
+
+          cat << EOF > release_notes.md
+          ## 📦 Imagem Docker (GHCR)
+
+          \`\`\`bash
+          docker pull ${IMAGE_NAME}:${TAG_NAME}
+          docker pull ${IMAGE_NAME}:latest
+          \`\`\`
+
+          ## 💾 Imagem Docker Standalone (Arquivo Anexado)
+          Para utilizar a imagem offline ou sem autenticação no GHCR:
+          1. Baixe o arquivo anexo \`${ARCHIVE_NAME}\` nesta release.
+          2. Carregue no Docker local:
+          \`\`\`bash
+          docker load < ${ARCHIVE_NAME}
+          \`\`\`
+          EOF
+
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            echo "Release $TAG_NAME já existe, atualizando assets..."
+            gh release upload "$TAG_NAME" "$ARCHIVE_NAME" --clobber
+          else
+            echo "Criando release $TAG_NAME..."
+            gh release create "$TAG_NAME" "$ARCHIVE_NAME" \
+              --title "Release $TAG_NAME" \
+              --generate-notes \
+              --notes-file release_notes.md \
+              --target "${{ github.sha }}"
+          fi
